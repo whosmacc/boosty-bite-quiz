@@ -13,7 +13,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
         {/* Logo */}
         <div className="mb-12 animate-bounce-in">
           <img 
-            src="/src/assets/logo.svg" 
+            src="/src/assets/logo.png" 
             alt="BoostyLite Logo" 
             className="w-32 h-auto"
           />

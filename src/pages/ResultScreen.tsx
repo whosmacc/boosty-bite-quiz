@@ -86,12 +86,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart }) => {
             </div>
             <p className="text-sm text-gray-700 mb-3">
               Show this screen at the counter for a surprise treat!
-            </p>
-            <div className="bg-white rounded-xl p-3 border-2 border-dashed border-orange-300">
-              <code className="text-orange-600 font-bold text-lg tracking-wider">
-                {result.discountCode}
-              </code>
-            </div>
+          </p>
           </div>
         </div>
 
