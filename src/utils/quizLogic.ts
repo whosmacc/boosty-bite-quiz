@@ -1,4 +1,3 @@
-
 import { 
   MenuItem, 
   DrinkItem, 
@@ -25,6 +24,8 @@ export const calculateResult = (answers: UserAnswers): {
   description: string;
   emoji: string;
   discountCode: string;
+  drink: string;
+  drinkEmoji: string;
 } => {
   console.log('Calculating result with answers:', answers);
   
@@ -32,14 +33,14 @@ export const calculateResult = (answers: UserAnswers): {
   const categoryScores = calculateCategoryScores(answers);
   console.log('Category scores:', categoryScores);
   
-  // Determine meal type preference
-  const mealType = getMealTypePreference(categoryScores);
+  // Determine meal type preference from question 4
+  const mealType = getMealTypePreference(answers, categoryScores);
   console.log('Preferred meal type:', mealType);
   
   // Filter menu items by meal type
   let availableItems = menuItems.filter(item => item.type === mealType);
   
-  // Filter by selected ingredients if any were chosen
+  // Filter by selected ingredients if any were chosen (question 7)
   const selectedIngredients = answers['7'] || [];
   if (selectedIngredients.length > 0) {
     const itemsWithIngredients = availableItems.filter(item => 
@@ -63,30 +64,35 @@ export const calculateResult = (answers: UserAnswers): {
   // Select the best matching item
   const selectedItem = scoredItems[0]?.item || availableItems[0];
   
-  // Determine size based on hunger level
-  const size = getSizePreference(categoryScores);
+  // Determine size based on meal type and hunger level
+  const size = getSizePreference(categoryScores, mealType);
   
-  // Determine bread type (for sandwiches only)
-  const breadType = selectedItem.type === 'sandwich' ? getBreadPreference(categoryScores) : null;
+  // Determine bread type (only for sandwiches)
+  const breadType = selectedItem.type === 'sandwich' ? getBreadPreference(answers, categoryScores) : null;
   
   // Select drink
   const selectedDrink = selectDrink(categoryScores, answers);
   
-  // Build meal name
+  // Build meal name with full details
   let mealName = '';
-  if (size && size !== 'medium') {
+  if (size && selectedItem.type !== 'wrap') {
     mealName += `${size.charAt(0).toUpperCase() + size.slice(1)} `;
   }
   mealName += selectedItem.name;
-  if (breadType && breadType !== 'white') {
+  if (breadType && breadType !== 'white' && selectedItem.type === 'sandwich') {
     mealName += ` on ${breadType.charAt(0).toUpperCase() + breadType.slice(1)}`;
   }
+  
+  // Get meal emoji
+  const mealEmoji = getMealEmoji(selectedItem.type);
   
   return {
     meal: mealName,
     description: selectedItem.description,
-    emoji: selectedDrink.emoji,
-    discountCode: generateDiscountCode()
+    emoji: mealEmoji,
+    discountCode: generateDiscountCode(),
+    drink: selectedDrink.name,
+    drinkEmoji: selectedDrink.emoji
   };
 };
 
@@ -112,13 +118,15 @@ const calculateCategoryScores = (answers: UserAnswers): CategoryScores => {
   return scores;
 };
 
-const getMealTypePreference = (scores: CategoryScores): 'sandwich' | 'salad' | 'wrap' => {
-  // Check for explicit meal type preferences
-  if (scores.sandwich_preference >= 5) return 'sandwich';
-  if (scores.salad_preference >= 5) return 'salad';
-  if (scores.wrap_preference >= 5) return 'wrap';
+const getMealTypePreference = (answers: UserAnswers, scores: CategoryScores): 'sandwich' | 'salad' | 'wrap' => {
+  // Check explicit meal type preference from question 4
+  const mealTypeAnswer = answers['4']?.[0];
   
-  // Fall back to category-based logic
+  if (mealTypeAnswer === 'sandwich') return 'sandwich';
+  if (mealTypeAnswer === 'wrap') return 'wrap';
+  if (mealTypeAnswer === 'salad') return 'salad';
+  
+  // Fall back to category-based logic if no explicit answer
   const healthyScore = (scores.healthy || 0) + (scores.fresh || 0);
   const comfortScore = (scores.comfort || 0) + (scores.indulgent || 0);
   const grabAndGoScore = scores.grab_and_go || 0;
@@ -132,17 +140,48 @@ const getMealTypePreference = (scores: CategoryScores): 'sandwich' | 'salad' | '
   }
 };
 
-const getSizePreference = (scores: CategoryScores): string => {
+const getSizePreference = (scores: CategoryScores, mealType: string): string | null => {
+  // Wraps don't have size options
+  if (mealType === 'wrap') return null;
+  
+  // Salads have Mini and Regular only
+  if (mealType === 'salad') {
+    return scores.portion_large >= 3 ? 'regular' : 'mini';
+  }
+  
+  // Sandwiches have Small, Medium, Large
   if (scores.portion_large >= 3) return 'large';
   if (scores.portion_small >= 3) return 'small';
   return 'medium';
 };
 
-const getBreadPreference = (scores: CategoryScores): string => {
+const getBreadPreference = (answers: UserAnswers, scores: CategoryScores): string => {
+  // Check explicit bread preference from question 5
+  const breadAnswer = answers['5']?.[0];
+  
+  if (breadAnswer === 'white') return 'white';
+  if (breadAnswer === 'brown') return 'brown';
+  if (breadAnswer === 'sourdough') return 'sourdough';
+  if (breadAnswer === 'none') return 'no bread';
+  
+  // Fall back to scoring
   if (scores.bread_sourdough >= 3) return 'sourdough';
   if (scores.bread_brown >= 3) return 'brown';
   if (scores.bread_none >= 3) return 'no bread';
   return 'white';
+};
+
+const getMealEmoji = (mealType: string): string => {
+  switch (mealType) {
+    case 'sandwich':
+      return '🥪';
+    case 'salad':
+      return '🥗';
+    case 'wrap':
+      return '🌯';
+    default:
+      return '🥪';
+  }
 };
 
 const calculateItemScore = (item: MenuItem, userScores: CategoryScores): number => {

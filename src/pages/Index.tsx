@@ -18,6 +18,7 @@ const Index = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [result, setResult] = useState(null);
+  const [filteredQuestions, setFilteredQuestions] = useState(quizQuestions);
 
   // Check if user is on mobile device
   useEffect(() => {
@@ -33,22 +34,47 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
+  const shouldSkipQuestion = (questionId: number, answers: UserAnswers): boolean => {
+    // Skip bread question (id: 5) if not sandwich
+    if (questionId === 5) {
+      const mealTypeAnswer = answers['4']?.[0];
+      return mealTypeAnswer !== 'sandwich';
+    }
+    
+    // Skip size-related logic could be added here if needed
+    // For now, we'll handle size in the result calculation
+    
+    return false;
+  };
+
+  const getFilteredQuestions = (answers: UserAnswers) => {
+    return quizQuestions.filter(question => !shouldSkipQuestion(question.id, answers));
+  };
+
   const handleStart = () => {
     setCurrentScreen('question');
     setCurrentQuestionIndex(0);
     setUserAnswers({});
+    setFilteredQuestions(quizQuestions);
   };
 
   const handleAnswer = (selectedOptions: string[]) => {
-    const currentQuestion = quizQuestions[currentQuestionIndex];
+    const currentQuestion = filteredQuestions[currentQuestionIndex];
     const newAnswers = {
       ...userAnswers,
       [currentQuestion.id]: selectedOptions
     };
     setUserAnswers(newAnswers);
 
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    // Update filtered questions based on new answers
+    const updatedFilteredQuestions = getFilteredQuestions(newAnswers);
+    setFilteredQuestions(updatedFilteredQuestions);
+
+    // Find next question index in the updated filtered list
+    const currentQuestionInFiltered = updatedFilteredQuestions.findIndex(q => q.id === currentQuestion.id);
+    
+    if (currentQuestionInFiltered < updatedFilteredQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionInFiltered + 1);
     } else {
       // Calculate result and show result screen
       const calculatedResult = calculateResult(newAnswers);
@@ -70,6 +96,7 @@ const Index = () => {
     setCurrentQuestionIndex(0);
     setUserAnswers({});
     setResult(null);
+    setFilteredQuestions(quizQuestions);
   };
 
   if (currentScreen === 'desktop-block') {
@@ -84,12 +111,12 @@ const Index = () => {
       
       {currentScreen === 'question' && (
         <QuestionScreen
-          question={quizQuestions[currentQuestionIndex]}
+          question={filteredQuestions[currentQuestionIndex]}
           questionIndex={currentQuestionIndex}
-          totalQuestions={quizQuestions.length}
+          totalQuestions={filteredQuestions.length}
           onAnswer={handleAnswer}
           onBack={handleBack}
-          isLastQuestion={currentQuestionIndex === quizQuestions.length - 1}
+          isLastQuestion={currentQuestionIndex === filteredQuestions.length - 1}
         />
       )}
       

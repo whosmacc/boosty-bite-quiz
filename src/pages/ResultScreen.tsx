@@ -9,6 +9,8 @@ interface ResultScreenProps {
     description: string;
     emoji: string;
     discountCode: string;
+    drink: string;
+    drinkEmoji: string;
   };
   onRestart: () => void;
 }
@@ -59,11 +61,19 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart }) => {
         {/* Result Card */}
         <div className="bg-white rounded-3xl p-8 shadow-xl border border-orange-200 mb-8 animate-scale-in">
           <div className="mb-6">
-            <div className="text-6xl mb-4">{result.emoji}</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              {result.meal}
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              {result.meal} {result.emoji}
             </h2>
-            <p className="text-gray-600 text-base">
+            
+            <div className="flex items-center justify-center mb-4 text-lg">
+              <span className="text-gray-700">+ {result.drink} {result.drinkEmoji}</span>
+            </div>
+            
+            <div className="text-sm text-gray-500 mb-4">
+              Enjoy your Boosty Combo!
+            </div>
+            
+            <p className="text-gray-600 text-sm">
               {result.description}
             </p>
           </div>
