@@ -72,10 +72,10 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart }) => {
           <div className="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl p-6 border border-orange-200">
             <div className="flex items-center justify-center mb-3">
               <Sparkles className="w-5 h-5 text-orange-600 mr-2" />
-              <span className="font-semibold text-orange-700">Special Offer</span>
+              <span className="font-semibold text-orange-700">Special Treat</span>
             </div>
             <p className="text-sm text-gray-700 mb-3">
-              Show this to our staff and get 5% off your order
+              Show this screen at the counter for a surprise treat!
             </p>
             <div className="bg-white rounded-xl p-3 border-2 border-dashed border-orange-300">
               <code className="text-orange-600 font-bold text-lg tracking-wider">
@@ -92,7 +92,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart }) => {
             className="w-full py-4 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <ArrowRight className="w-5 h-5 mr-2" />
-            Try Another Quiz
+            Back to Start
           </Button>
           
           <button

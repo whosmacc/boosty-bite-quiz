@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import OptionButton from '@/components/OptionButton';
 import ProgressBar from '@/components/ProgressBar';
@@ -36,6 +36,11 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   isLastQuestion
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+
+  // Reset selections when question changes
+  useEffect(() => {
+    setSelectedOptions([]);
+  }, [question.id]);
 
   const handleOptionClick = (optionId: string) => {
     if (question.type === 'single') {
@@ -133,7 +138,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
             color: isValidSelection ? 'white' : '#9CA3AF'
           }}
         >
-          {isLastQuestion ? 'Create My Boosty Lunch' : 'Next Question'}
+          {isLastQuestion ? 'Create My Boosty Meal' : 'Next Question'}
         </Button>
       </div>
     </div>
